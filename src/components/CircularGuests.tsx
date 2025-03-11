@@ -5,9 +5,10 @@ import { Guest } from '@/utils/types';
 interface CircularGuestsProps {
   guests: Guest[];
   tableSize: number;
+  position: { x: number, y: number };
 }
 
-const CircularGuests = ({ guests, tableSize }: CircularGuestsProps) => {
+const CircularGuests = ({ guests, tableSize, position }: CircularGuestsProps) => {
   const getInitials = (name: string) => {
     return name
       .split(' ')
@@ -27,11 +28,10 @@ const CircularGuests = ({ guests, tableSize }: CircularGuestsProps) => {
         return (
           <div
             key={guest.id}
-            className="absolute bg-primary/10 rounded-full w-8 h-8 flex items-center justify-center text-xs font-medium transform -translate-x-1/2 -translate-y-1/2"
+            className="absolute bg-primary/10 rounded-full w-8 h-8 flex items-center justify-center text-xs font-medium"
             style={{
-              left: `50%`,
-              top: `50%`,
-              transform: `translate(${x}px, ${y}px)`,
+              left: `${position.x + tableSize/2 + x}px`,
+              top: `${position.y + tableSize/2 + y}px`,
             }}
             title={guest.name}
           >
