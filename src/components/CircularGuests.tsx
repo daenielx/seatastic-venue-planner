@@ -1,7 +1,6 @@
 
 import React from 'react';
 import { Guest } from '@/utils/types';
-import { Heart } from 'lucide-react';
 
 interface CircularGuestsProps {
   guests: Guest[];
@@ -22,19 +21,18 @@ const CircularGuests = ({ guests, tableSize, position }: CircularGuestsProps) =>
     <>
       {guests.map((guest, index) => {
         const angle = (index * 360) / guests.length;
-        const radius = (tableSize / 2) + 20; // 20px offset from table edge
+        const radius = (tableSize / 2) + 30; // Increased offset for better spacing
         const x = radius * Math.cos((angle - 90) * (Math.PI / 180));
         const y = radius * Math.sin((angle - 90) * (Math.PI / 180));
         
         return (
           <div
             key={guest.id}
-            className="absolute rounded-full w-9 h-9 flex items-center justify-center text-xs font-medium transition-all duration-200 hover:scale-110 shadow-sm"
+            className="absolute rounded-full w-8 h-8 flex items-center justify-center text-xs font-medium bg-white/90 border border-primary/20 shadow-sm transition-all duration-200 hover:scale-110"
             style={{
               left: `${position.x + tableSize/2 + x}px`,
               top: `${position.y + tableSize/2 + y}px`,
-              background: 'linear-gradient(135deg, #fdfcfb 0%, #e2d1c3 100%)',
-              border: '1px solid rgba(255,255,255,0.5)',
+              transform: 'translate(-50%, -50%)',
             }}
             title={guest.name}
           >

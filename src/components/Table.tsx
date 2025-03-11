@@ -154,7 +154,7 @@ const Table = ({ table, onUpdateTable, onDeleteTable, onDrop, onRemoveGuest }: T
     <>
       <div
         ref={tableRef}
-        className={`shadow-lg flex flex-col justify-start relative ${
+        className={`shadow-lg flex flex-col items-center justify-center relative ${
           isDragging ? 'shadow-xl' : ''
         } ${isDragOver ? 'droppable-area can-drop' : 'droppable-area'}`}
         style={tableStyle}
@@ -163,133 +163,100 @@ const Table = ({ table, onUpdateTable, onDeleteTable, onDrop, onRemoveGuest }: T
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
       >
-        <div className="table-header flex justify-between items-center p-3 border-b border-pink-100/20">
-          <div className="flex items-center">
+        <div className="absolute top-4 right-4 flex space-x-1">
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="h-6 w-6 bg-white/80 hover:bg-white"
+              >
+                <Edit className="h-3 w-3" />
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-md">
+              <DialogHeader>
+                <DialogTitle>Edit Table</DialogTitle>
+              </DialogHeader>
+              <div className="grid gap-4 py-4">
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="edit-table-name" className="text-right">
+                    Table Name
+                  </Label>
+                  <Input
+                    id="edit-table-name"
+                    value={editedTable.name}
+                    onChange={(e) => setEditedTable({...editedTable, name: e.target.value})}
+                    className="col-span-3"
+                  />
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="edit-capacity" className="text-right">
+                    Capacity
+                  </Label>
+                  <Input
+                    id="edit-capacity"
+                    type="number"
+                    min={editedTable.guests?.length || 0}
+                    max="20"
+                    value={editedTable.capacity}
+                    onChange={(e) => setEditedTable({...editedTable, capacity: parseInt(e.target.value)})}
+                    className="col-span-3"
+                  />
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="edit-shape" className="text-right">
+                    Shape
+                  </Label>
+                  <Select 
+                    value={editedTable.shape} 
+                    onValueChange={(value) => setEditedTable({...editedTable, shape: value as 'round' | 'rectangle' | 'square'})}
+                  >
+                    <SelectTrigger className="col-span-3">
+                      <SelectValue placeholder="Select table shape" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="round">Round</SelectItem>
+                      <SelectItem value="rectangle">Rectangle</SelectItem>
+                      <SelectItem value="square">Square</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <DialogFooter>
+                <Button 
+                  type="button" 
+                  variant="destructive" 
+                  onClick={handleDeleteTable}
+                >
+                  Delete Table
+                </Button>
+                <div className="flex space-x-2">
+                  <DialogClose asChild>
+                    <Button type="button" variant="outline">
+                      Cancel
+                    </Button>
+                  </DialogClose>
+                  <DialogClose asChild>
+                    <Button type="button" onClick={handleUpdateTable}>
+                      Save Changes
+                    </Button>
+                  </DialogClose>
+                </div>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        </div>
+
+        <div className="flex flex-col items-center justify-center">
+          <div className="flex items-center mb-1">
             <Heart className="h-3 w-3 text-pink-400 mr-1" />
             <span className="font-medium text-sm">{table.name}</span>
           </div>
-          <div className="flex space-x-1">
-            <Dialog>
-              <DialogTrigger asChild>
-                <Button 
-                  variant="ghost" 
-                  size="icon" 
-                  className="h-6 w-6"
-                  onClick={() => {
-                    setIsEditing(true);
-                    setEditedTable({...table});
-                  }}
-                >
-                  <Edit className="h-3 w-3" />
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-md">
-                <DialogHeader>
-                  <DialogTitle>Edit Table</DialogTitle>
-                </DialogHeader>
-                <div className="grid gap-4 py-4">
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="edit-table-name" className="text-right">
-                      Table Name
-                    </Label>
-                    <Input
-                      id="edit-table-name"
-                      value={editedTable.name}
-                      onChange={(e) => setEditedTable({...editedTable, name: e.target.value})}
-                      className="col-span-3"
-                    />
-                  </div>
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="edit-capacity" className="text-right">
-                      Capacity
-                    </Label>
-                    <Input
-                      id="edit-capacity"
-                      type="number"
-                      min={editedTable.guests?.length || 0}
-                      max="20"
-                      value={editedTable.capacity}
-                      onChange={(e) => setEditedTable({...editedTable, capacity: parseInt(e.target.value)})}
-                      className="col-span-3"
-                    />
-                  </div>
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="edit-shape" className="text-right">
-                      Shape
-                    </Label>
-                    <Select 
-                      value={editedTable.shape} 
-                      onValueChange={(value) => setEditedTable({...editedTable, shape: value as 'round' | 'rectangle' | 'square'})}
-                    >
-                      <SelectTrigger className="col-span-3">
-                        <SelectValue placeholder="Select table shape" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="round">Round</SelectItem>
-                        <SelectItem value="rectangle">Rectangle</SelectItem>
-                        <SelectItem value="square">Square</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-                <DialogFooter>
-                  <Button 
-                    type="button" 
-                    variant="destructive" 
-                    onClick={handleDeleteTable}
-                  >
-                    Delete Table
-                  </Button>
-                  <div className="flex space-x-2">
-                    <DialogClose asChild>
-                      <Button type="button" variant="outline">
-                        Cancel
-                      </Button>
-                    </DialogClose>
-                    <DialogClose asChild>
-                      <Button type="button" onClick={handleUpdateTable}>
-                        Save Changes
-                      </Button>
-                    </DialogClose>
-                  </div>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
-          </div>
-        </div>
-
-        <div className="flex items-center justify-center mb-2 mt-2">
           <div className="flex items-center text-xs text-muted-foreground">
             <Users className="h-3 w-3 mr-1" />
             {table.guests?.length || 0} / {table.capacity}
           </div>
-        </div>
-
-        <div className="p-2 flex-grow overflow-auto">
-          {table.guests && table.guests.length > 0 ? (
-            <ul className="space-y-1">
-              {table.guests.map((guest) => (
-                <li 
-                  key={guest.id} 
-                  className="bg-background/70 rounded-full px-2 py-1 text-xs flex justify-between items-center"
-                >
-                  <span className="truncate max-w-[80%]">{guest.name}</span>
-                  <Button 
-                    variant="ghost" 
-                    size="icon" 
-                    className="h-5 w-5 text-muted-foreground hover:text-pink-400"
-                    onClick={() => handleRemoveGuest(guest.id)}
-                  >
-                    <X className="h-3 w-3" />
-                  </Button>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <div className="h-full flex items-center justify-center text-xs text-muted-foreground italic">
-              Drag guests here
-            </div>
-          )}
         </div>
       </div>
       
