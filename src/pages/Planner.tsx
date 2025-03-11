@@ -5,11 +5,13 @@ import GuestList from '@/components/GuestList';
 import TableGrid from '@/components/TableGrid';
 import { Guest, Table, Event } from '@/utils/types';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Save, Download } from 'lucide-react';
+import { ArrowLeft, Save, Download, Printer } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/AuthProvider';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useRef } from 'react';
+import PrintableSeatingList from '@/components/PrintableSeatingList';
 
 const Planner = () => {
   const location = useLocation();
@@ -18,7 +20,8 @@ const Planner = () => {
   const queryClient = useQueryClient();
   const eventId = location.state?.eventId;
   const [isFullscreen, setIsFullscreen] = useState(false);
-  
+  const printRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
     if (!eventId) {
       navigate('/dashboard');
@@ -294,6 +297,10 @@ const Planner = () => {
     toast.success('Seating plan exported successfully');
   };
 
+  const handlePrint = () => {
+    window.print();
+  };
+
   const toggleFullscreen = () => {
     setIsFullscreen(!isFullscreen);
   };
@@ -342,10 +349,10 @@ const Planner = () => {
               <Button 
                 variant="outline" 
                 className="btn-hover"
-                onClick={handleExport}
+                onClick={handlePrint}
               >
-                <Download className="h-4 w-4 mr-2" />
-                Export
+                <Printer className="h-4 w-4 mr-2" />
+                Print Seating List
               </Button>
               <Button 
                 className="btn-hover"
@@ -359,7 +366,7 @@ const Planner = () => {
         )}
         
         <div className={`grid ${isFullscreen ? 'grid-cols-4' : 'grid-cols-1 lg:grid-cols-4'} gap-6`}>
-          <div className={`${isFullscreen ? 'col-span-1' : 'lg:col-span-1'}`}>
+          <div className={`${isFullscreen ? 'col-span-1 h-screen overflow-auto' : 'lg:col-span-1'}`}>
             <GuestList 
               guests={guests} 
               onAddGuest={handleAddGuest}
@@ -381,6 +388,14 @@ const Planner = () => {
           </div>
         </div>
       </div>
+
+      <PrintableSeatingList
+        ref={printRef}
+        tables={processedTables}
+        eventName={event.name}
+        eventDate={event.date}
+        venue={event.venue}
+      />
     </div>
   );
 };

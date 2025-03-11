@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
+import CircularGuests from './CircularGuests';
 
 interface TableProps {
   table: TableType;
@@ -136,32 +137,23 @@ const Table = ({ table, onUpdateTable, onDeleteTable, onDrop, onRemoveGuest }: T
       zIndex: isDragging ? 10 : 1,
     };
     
-    const shapeStyles = {
-      round: {
-        borderRadius: '50%',
-      },
-      rectangle: {
-        borderRadius: '10px',
-      },
-      square: {
-        borderRadius: '10px',
-      },
-    };
-    
     return {
       ...baseStyle,
-      ...shapeStyles[table.shape],
+      ...(table.shape === 'round' ? { borderRadius: '50%' } : { borderRadius: '10px' }),
     };
   };
+
+  const tableStyle = getTableStyle();
+  const tableSize = parseInt(tableStyle.width as string);
 
   return (
     <>
       <div
         ref={tableRef}
-        className={`glassmorphism shadow-lg flex flex-col justify-start ${
+        className={`glassmorphism shadow-lg flex flex-col justify-start relative ${
           isDragging ? 'shadow-xl' : ''
         } ${isDragOver ? 'droppable-area can-drop' : 'droppable-area'}`}
-        style={getTableStyle()}
+        style={tableStyle}
         onMouseDown={handleMouseDown}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
@@ -292,9 +284,6 @@ const Table = ({ table, onUpdateTable, onDeleteTable, onDrop, onRemoveGuest }: T
             </div>
           )}
         </div>
-      </div>
-    </>
-  );
-};
 
-export default Table;
+        {
+
