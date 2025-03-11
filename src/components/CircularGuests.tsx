@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { Guest } from '@/utils/types';
+import { Heart } from 'lucide-react';
 
 interface CircularGuestsProps {
   guests: Guest[];
@@ -28,10 +29,12 @@ const CircularGuests = ({ guests, tableSize, position }: CircularGuestsProps) =>
         return (
           <div
             key={guest.id}
-            className="absolute bg-primary/10 rounded-full w-8 h-8 flex items-center justify-center text-xs font-medium"
+            className="absolute rounded-full w-9 h-9 flex items-center justify-center text-xs font-medium transition-all duration-200 hover:scale-110 shadow-sm"
             style={{
               left: `${position.x + tableSize/2 + x}px`,
               top: `${position.y + tableSize/2 + y}px`,
+              background: 'linear-gradient(135deg, #fdfcfb 0%, #e2d1c3 100%)',
+              border: '1px solid rgba(255,255,255,0.5)',
             }}
             title={guest.name}
           >

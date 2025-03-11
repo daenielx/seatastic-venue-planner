@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { Table as TableType, Guest } from '@/utils/types';
-import { Users, X, Edit, Trash2 } from 'lucide-react';
+import { Users, X, Edit, Trash2, Heart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
@@ -37,7 +37,6 @@ const Table = ({ table, onUpdateTable, onDeleteTable, onDrop, onRemoveGuest }: T
           const newX = e.clientX - parentRect.left - dragOffset.current.x;
           const newY = e.clientY - parentRect.top - dragOffset.current.y;
           
-          // Ensure table stays within the parent container bounds
           const maxX = parentRect.width - tableRef.current.offsetWidth;
           const maxY = parentRect.height - tableRef.current.offsetHeight;
           
@@ -136,11 +135,15 @@ const Table = ({ table, onUpdateTable, onDeleteTable, onDrop, onRemoveGuest }: T
       height: table.shape === 'round' ? '200px' : table.shape === 'rectangle' ? '160px' : '180px',
       cursor: isDragging ? 'grabbing' : 'grab',
       zIndex: isDragging ? 10 : 1,
+      boxShadow: isDragOver ? '0 0 15px rgba(255, 153, 153, 0.6)' : '0 8px 16px rgba(0,0,0,0.05)',
+      background: 'linear-gradient(to top, #e6e9f0 0%, #eef1f5 100%)',
+      transition: 'box-shadow 0.3s ease, transform 0.2s ease',
+      transform: isDragOver ? 'scale(1.02)' : 'scale(1)',
     };
     
     return {
       ...baseStyle,
-      ...(table.shape === 'round' ? { borderRadius: '50%' } : { borderRadius: '10px' }),
+      ...(table.shape === 'round' ? { borderRadius: '50%' } : { borderRadius: '15px' }),
     };
   };
 
@@ -151,7 +154,7 @@ const Table = ({ table, onUpdateTable, onDeleteTable, onDrop, onRemoveGuest }: T
     <>
       <div
         ref={tableRef}
-        className={`glassmorphism shadow-lg flex flex-col justify-start relative ${
+        className={`shadow-lg flex flex-col justify-start relative ${
           isDragging ? 'shadow-xl' : ''
         } ${isDragOver ? 'droppable-area can-drop' : 'droppable-area'}`}
         style={tableStyle}
@@ -160,8 +163,11 @@ const Table = ({ table, onUpdateTable, onDeleteTable, onDrop, onRemoveGuest }: T
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
       >
-        <div className="table-header flex justify-between items-center p-3 border-b border-gray-100">
-          <span className="font-medium text-sm">{table.name}</span>
+        <div className="table-header flex justify-between items-center p-3 border-b border-pink-100/20">
+          <div className="flex items-center">
+            <Heart className="h-3 w-3 text-pink-400 mr-1" />
+            <span className="font-medium text-sm">{table.name}</span>
+          </div>
           <div className="flex space-x-1">
             <Dialog>
               <DialogTrigger asChild>
@@ -265,13 +271,13 @@ const Table = ({ table, onUpdateTable, onDeleteTable, onDrop, onRemoveGuest }: T
               {table.guests.map((guest) => (
                 <li 
                   key={guest.id} 
-                  className="bg-background/70 rounded p-1 text-xs flex justify-between items-center"
+                  className="bg-background/70 rounded-full px-2 py-1 text-xs flex justify-between items-center"
                 >
                   <span className="truncate max-w-[80%]">{guest.name}</span>
                   <Button 
                     variant="ghost" 
                     size="icon" 
-                    className="h-5 w-5 text-muted-foreground"
+                    className="h-5 w-5 text-muted-foreground hover:text-pink-400"
                     onClick={() => handleRemoveGuest(guest.id)}
                   >
                     <X className="h-3 w-3" />

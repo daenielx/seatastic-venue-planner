@@ -5,6 +5,7 @@
 
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap');
 
 @layer base {
   :root {
@@ -17,8 +18,8 @@
     --popover: 0 0% 100%;
     --popover-foreground: 240 10% 3.9%;
     
-    --primary: 240 5.9% 10%;
-    --primary-foreground: 0 0% 98%;
+    --primary: 346 77% 49%;
+    --primary-foreground: 355 100% 97%;
     
     --secondary: 240 4.8% 95.9%;
     --secondary-foreground: 240 5.9% 10%;
@@ -26,26 +27,26 @@
     --muted: 240 4.8% 95.9%;
     --muted-foreground: 240 3.8% 46.1%;
     
-    --accent: 240 4.8% 95.9%;
-    --accent-foreground: 240 5.9% 10%;
+    --accent: 346 77% 95%;
+    --accent-foreground: 346 77% 49%;
     
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
 
     --border: 240 5.9% 90%;
     --input: 240 5.9% 90%;
-    --ring: 240 5.9% 10%;
+    --ring: 346 77% 49%;
     
     --radius: 0.5rem;
 
     --sidebar-background: 0 0% 98%;
     --sidebar-foreground: 240 5.3% 26.1%;
-    --sidebar-primary: 240 5.9% 10%;
+    --sidebar-primary: 346 77% 49%;
     --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 240 4.8% 95.9%;
-    --sidebar-accent-foreground: 240 5.9% 10%;
+    --sidebar-accent: 346 77% 95%;
+    --sidebar-accent-foreground: 346 77% 49%;
     --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-ring: 346 77% 49%;
   }
 
   .dark {
@@ -58,8 +59,8 @@
     --popover: 240 10% 3.9%;
     --popover-foreground: 0 0% 98%;
     
-    --primary: 0 0% 98%;
-    --primary-foreground: 240 5.9% 10%;
+    --primary: 346 77% 59%;
+    --primary-foreground: 355 100% 97%;
     
     --secondary: 240 3.7% 15.9%;
     --secondary-foreground: 0 0% 98%;
@@ -67,24 +68,24 @@
     --muted: 240 3.7% 15.9%;
     --muted-foreground: 240 5% 64.9%;
     
-    --accent: 240 3.7% 15.9%;
-    --accent-foreground: 0 0% 98%;
+    --accent: 346 77% 15%;
+    --accent-foreground: 346 77% 59%;
     
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 0 0% 98%;
     
     --border: 240 3.7% 15.9%;
     --input: 240 3.7% 15.9%;
-    --ring: 240 4.9% 83.9%;
+    --ring: 346 77% 59%;
 
     --sidebar-background: 240 5.9% 10%;
     --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
+    --sidebar-primary: 346 77% 59%;
     --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 240 3.7% 15.9%;
     --sidebar-accent-foreground: 240 4.8% 95.9%;
     --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-ring: 346 77% 59%;
   }
 }
 
@@ -96,6 +97,10 @@
   body {
     @apply bg-background text-foreground;
     font-family: 'Inter', sans-serif;
+  }
+  
+  h1, h2, h3 {
+    font-family: 'Playfair Display', serif;
   }
 }
 
@@ -127,6 +132,26 @@
   @apply bg-accent/50;
 }
 
+/* Wedding theme specific styles */
+.wedding-title {
+  font-family: 'Great Vibes', cursive;
+  @apply text-primary;
+}
+
+.table-guest-tag {
+  background: linear-gradient(135deg, #fdfcfb 0%, #e2d1c3 100%);
+  @apply border border-primary/10 shadow-sm;
+}
+
+.wedding-card {
+  background: linear-gradient(to top, #e6e9f0 0%, #eef1f5 100%);
+  @apply border border-white/50 shadow-md rounded-xl;
+}
+
+.table-border {
+  @apply border-2 border-primary/10;
+}
+
 /* Print styles */
 @media print {
   body * {
@@ -153,5 +178,14 @@
 
 /* Special styles for the seating chart */
 .seating-chart-title {
+  font-family: 'Great Vibes', cursive;
+  @apply text-primary text-4xl;
+}
+
+.seating-chart-subtitle {
   font-family: 'Playfair Display', serif;
+}
+
+.wedding-gradient-bg {
+  background-image: linear-gradient(to right, #ee9ca7, #ffdde1);
 }
