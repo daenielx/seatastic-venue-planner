@@ -358,18 +358,16 @@ const Planner = () => {
           </div>
         )}
         
-        <div className={`grid ${isFullscreen ? 'grid-cols-1' : 'grid-cols-1 lg:grid-cols-4'} gap-6`}>
-          {(!isFullscreen) && (
-            <div className="lg:col-span-1">
-              <GuestList 
-                guests={guests} 
-                onAddGuest={handleAddGuest}
-                onUpdateGuest={handleUpdateGuest}
-                onDeleteGuest={handleDeleteGuest}
-              />
-            </div>
-          )}
-          <div className={`${isFullscreen ? '' : 'lg:col-span-3'}`}>
+        <div className={`grid ${isFullscreen ? 'grid-cols-4' : 'grid-cols-1 lg:grid-cols-4'} gap-6`}>
+          <div className={`${isFullscreen ? 'col-span-1' : 'lg:col-span-1'}`}>
+            <GuestList 
+              guests={guests} 
+              onAddGuest={handleAddGuest}
+              onUpdateGuest={handleUpdateGuest}
+              onDeleteGuest={handleDeleteGuest}
+            />
+          </div>
+          <div className={`${isFullscreen ? 'col-span-3' : 'lg:col-span-3'}`}>
             <TableGrid 
               tables={processedTables}
               onAddTable={handleAddTable}
