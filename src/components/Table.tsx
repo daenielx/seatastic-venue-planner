@@ -126,6 +126,10 @@ const Table = ({ table, onUpdateTable, onDeleteTable, onDrop, onRemoveGuest }: T
     onRemoveGuest(table.id, guestId);
   };
 
+  const handleUnassignGuest = (guestId: string) => {
+    handleRemoveGuest(guestId);
+  };
+
   const getTableStyle = () => {
     const baseStyle = {
       position: 'absolute' as const,
@@ -265,6 +269,7 @@ const Table = ({ table, onUpdateTable, onDeleteTable, onDrop, onRemoveGuest }: T
           guests={table.guests} 
           tableSize={tableSize}
           position={position}
+          onUnassignGuest={(guestId) => handleUnassignGuest(guestId)}
         />
       )}
     </>

@@ -12,6 +12,7 @@ import { useAuth } from '@/context/AuthProvider';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useRef } from 'react';
 import PrintableSeatingList from '@/components/PrintableSeatingList';
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from 'lucide-react';
 
 const Planner = () => {
   const location = useLocation();
@@ -20,6 +21,7 @@ const Planner = () => {
   const queryClient = useQueryClient();
   const eventId = location.state?.eventId;
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [selectedDesign, setSelectedDesign] = useState<'elegant' | 'modern' | 'classic'>('elegant');
   const printRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -346,6 +348,19 @@ const Planner = () => {
               </div>
             </div>
             <div className="flex space-x-3">
+              <Select
+                value={selectedDesign}
+                onValueChange={(value: 'elegant' | 'modern' | 'classic') => setSelectedDesign(value)}
+              >
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder="Select design" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="elegant">Elegant Design</SelectItem>
+                  <SelectItem value="modern">Modern Design</SelectItem>
+                  <SelectItem value="classic">Classic Design</SelectItem>
+                </SelectContent>
+              </Select>
               <Button 
                 variant="outline" 
                 className="btn-hover"
@@ -395,6 +410,7 @@ const Planner = () => {
         eventName={event.name}
         eventDate={event.date}
         venue={event.venue}
+        design={selectedDesign}
       />
     </div>
   );
