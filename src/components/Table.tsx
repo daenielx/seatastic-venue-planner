@@ -1,4 +1,3 @@
-
 import { useState, useRef, useEffect } from 'react';
 import { Table as TableType, Guest } from '@/utils/types';
 import { Users, X, Edit, Trash2 } from 'lucide-react';
@@ -19,8 +18,8 @@ interface TableProps {
 
 const Table = ({ table, onUpdateTable, onDeleteTable, onDrop, onRemoveGuest }: TableProps) => {
   const [position, setPosition] = useState({ 
-    x: table.position_x || table.position.x, 
-    y: table.position_y || table.position.y 
+    x: table.position_x, 
+    y: table.position_y 
   });
   const [isDragging, setIsDragging] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -37,7 +36,6 @@ const Table = ({ table, onUpdateTable, onDeleteTable, onDrop, onRemoveGuest }: T
           const newX = e.clientX - parentRect.left - dragOffset.current.x;
           const newY = e.clientY - parentRect.top - dragOffset.current.y;
           
-          // Ensure the table stays within the boundaries of its parent
           const maxX = parentRect.width - tableRef.current.offsetWidth;
           const maxY = parentRect.height - tableRef.current.offsetHeight;
           
@@ -52,10 +50,8 @@ const Table = ({ table, onUpdateTable, onDeleteTable, onDrop, onRemoveGuest }: T
     const handleMouseUp = () => {
       if (isDragging) {
         setIsDragging(false);
-        // Update the table position in the parent component
         onUpdateTable({
           ...table,
-          position: position,
           position_x: position.x,
           position_y: position.y
         });
@@ -73,13 +69,12 @@ const Table = ({ table, onUpdateTable, onDeleteTable, onDrop, onRemoveGuest }: T
     };
   }, [isDragging, position, table, onUpdateTable]);
 
-  // Update position state when table prop changes
   useEffect(() => {
     setPosition({ 
-      x: table.position_x || table.position.x, 
-      y: table.position_y || table.position.y 
+      x: table.position_x, 
+      y: table.position_y 
     });
-  }, [table.position_x, table.position.x, table.position_y, table.position.y]);
+  }, [table.position_x, table.position_y]);
 
   const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
     if (tableRef.current && e.target === tableRef.current || 
@@ -114,7 +109,6 @@ const Table = ({ table, onUpdateTable, onDeleteTable, onDrop, onRemoveGuest }: T
   const handleUpdateTable = () => {
     onUpdateTable({
       ...editedTable,
-      position: position,
       position_x: position.x,
       position_y: position.y
     });

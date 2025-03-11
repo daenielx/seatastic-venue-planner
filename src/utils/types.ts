@@ -21,6 +21,11 @@ export interface Table {
   shape: 'round' | 'rectangle' | 'square';
   position_x: number;
   position_y: number;
+  // Add position property for compatibility with UI components
+  position?: {
+    x: number;
+    y: number;
+  };
   event_id: string;
   created_at?: string;
   updated_at?: string;

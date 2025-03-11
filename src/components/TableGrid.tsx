@@ -1,4 +1,3 @@
-
 import { useState, useRef } from 'react';
 import { Table as TableType, Guest } from '@/utils/types';
 import Table from './Table';
@@ -25,7 +24,8 @@ const TableGrid = ({ tables, onAddTable, onUpdateTable, onDeleteTable, onSeatGue
     name: '',
     capacity: 8,
     shape: 'round',
-    position: { x: 0, y: 0 },
+    position_x: 0,
+    position_y: 0
   });
   const gridRef = useRef<HTMLDivElement>(null);
 
@@ -61,10 +61,9 @@ const TableGrid = ({ tables, onAddTable, onUpdateTable, onDeleteTable, onSeatGue
       
       onAddTable({
         id: Date.now().toString(), // This will be replaced by the server
-        name: newTable.name,
+        name: newTable.name || '',
         capacity: newTable.capacity || 8,
         shape: newTable.shape || 'round',
-        position: { x: randomX, y: randomY },
         position_x: randomX,
         position_y: randomY,
         event_id: '',  // This will be set by the server
@@ -75,7 +74,8 @@ const TableGrid = ({ tables, onAddTable, onUpdateTable, onDeleteTable, onSeatGue
         name: '',
         capacity: 8,
         shape: 'round',
-        position: { x: 0, y: 0 }
+        position_x: 0,
+        position_y: 0
       });
       
       toast.success(`Table ${newTable.name} added`);

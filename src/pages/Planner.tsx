@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
@@ -19,7 +18,6 @@ const Planner = () => {
   const queryClient = useQueryClient();
   const eventId = location.state?.eventId;
   
-  // Redirect to dashboard if no eventId provided
   useEffect(() => {
     if (!eventId) {
       navigate('/dashboard');
@@ -27,7 +25,6 @@ const Planner = () => {
     }
   }, [eventId, navigate]);
 
-  // Fetch event details
   const { data: event, isLoading: isEventLoading } = useQuery({
     queryKey: ['event', eventId],
     queryFn: async () => {
@@ -45,7 +42,6 @@ const Planner = () => {
     enabled: !!eventId && !!session.user
   });
 
-  // Fetch tables for this event
   const { data: tables = [], isLoading: isTablesLoading } = useQuery({
     queryKey: ['tables', eventId],
     queryFn: async () => {
@@ -60,17 +56,13 @@ const Planner = () => {
       
       return data.map(table => ({
         ...table,
-        position: {
-          x: table.position_x,
-          y: table.position_y
-        },
+        shape: (table.shape as 'round' | 'rectangle' | 'square'),
         guests: [] // Initialize empty guests array
       }));
     },
     enabled: !!eventId && !!session.user
   });
 
-  // Fetch guests for this event
   const { data: guests = [], isLoading: isGuestsLoading } = useQuery({
     queryKey: ['guests', eventId],
     queryFn: async () => {
@@ -88,7 +80,6 @@ const Planner = () => {
     enabled: !!eventId && !!session.user
   });
 
-  // Process tables and guests to match our application structure
   const processedTables = tables.map(table => {
     const tableGuests = guests.filter(guest => guest.table_id === table.id);
     return {
@@ -97,7 +88,6 @@ const Planner = () => {
     };
   });
 
-  // Mutations
   const addGuestMutation = useMutation({
     mutationFn: async (newGuest: Guest) => {
       const { data, error } = await supabase
@@ -182,8 +172,8 @@ const Planner = () => {
             name: newTable.name,
             capacity: newTable.capacity,
             shape: newTable.shape,
-            position_x: newTable.position.x,
-            position_y: newTable.position.y,
+            position_x: newTable.position_x,
+            position_y: newTable.position_y,
             event_id: eventId
           }
         ])
@@ -208,8 +198,8 @@ const Planner = () => {
           name: updatedTable.name,
           capacity: updatedTable.capacity,
           shape: updatedTable.shape,
-          position_x: updatedTable.position.x,
-          position_y: updatedTable.position.y
+          position_x: updatedTable.position_x,
+          position_y: updatedTable.position_y
         })
         .eq('id', updatedTable.id)
         .select();
@@ -227,7 +217,6 @@ const Planner = () => {
 
   const deleteTableMutation = useMutation({
     mutationFn: async (id: string) => {
-      // First update any guests assigned to this table to have no table
       await supabase
         .from('guests')
         .update({ table_id: null })
@@ -250,7 +239,6 @@ const Planner = () => {
     }
   });
 
-  // Event handlers
   const handleAddGuest = (newGuest: Guest) => {
     addGuestMutation.mutate({ ...newGuest, event_id: eventId });
   };
@@ -268,11 +256,8 @@ const Planner = () => {
   };
 
   const handleUpdateTable = (updatedTable: Table) => {
-    // Convert position object to x/y properties for database
     updateTableMutation.mutate({
       ...updatedTable,
-      position_x: updatedTable.position.x,
-      position_y: updatedTable.position.y,
       event_id: eventId
     });
   };
@@ -282,7 +267,6 @@ const Planner = () => {
   };
 
   const handleSeatGuest = (tableId: string, guest: Guest) => {
-    // Update the guest with the new table assignment
     updateGuestMutation.mutate({
       ...guest,
       table_id: tableId,
@@ -291,10 +275,8 @@ const Planner = () => {
   };
 
   const handleRemoveGuest = (tableId: string, guestId: string) => {
-    // Find the guest
     const guest = guests.find(g => g.id === guestId);
     if (guest) {
-      // Update the guest to remove table assignment
       updateGuestMutation.mutate({
         ...guest,
         table_id: null,
@@ -311,7 +293,6 @@ const Planner = () => {
     toast.success('Seating plan exported successfully');
   };
 
-  // Loading state
   if (isEventLoading || !event) {
     return (
       <div className="min-h-screen bg-secondary/30 flex items-center justify-center">
