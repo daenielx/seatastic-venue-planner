@@ -35,15 +35,12 @@ const Table = ({ table, onUpdateTable, onDeleteTable, onDrop, onRemoveGuest }: T
       if (isDragging && tableRef.current) {
         const parentRect = tableRef.current.parentElement?.getBoundingClientRect();
         if (parentRect) {
-          const tableWidth = tableRef.current.offsetWidth;
-          const tableHeight = tableRef.current.offsetHeight;
-          
           const newX = e.clientX - parentRect.left - dragOffset.current.x;
           const newY = e.clientY - parentRect.top - dragOffset.current.y;
           
           // Ensure table stays within the parent container bounds
-          const maxX = parentRect.width - tableWidth;
-          const maxY = parentRect.height - tableHeight;
+          const maxX = parentRect.width - tableRef.current.offsetWidth;
+          const maxY = parentRect.height - tableRef.current.offsetHeight;
           
           setPosition({
             x: Math.max(0, Math.min(newX, maxX)),

@@ -109,7 +109,7 @@ const TableGrid = ({
   };
 
   return (
-    <div className={`bg-white rounded-xl shadow-sm p-6 h-full flex flex-col ${isFullscreen ? 'fixed inset-0 z-50 rounded-none left-[300px]' : ''}`}>
+    <div className={`bg-white rounded-xl shadow-sm p-6 h-full flex flex-col ${isFullscreen ? 'fixed inset-0 z-50 rounded-none left-1/4' : ''}`}>
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-xl font-semibold">Seating Plan</h2>
         <div className="flex space-x-2">
