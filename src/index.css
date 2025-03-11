@@ -4,6 +4,7 @@
 @tailwind utilities;
 
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&display=swap');
 
 @layer base {
   :root {
@@ -124,4 +125,33 @@
 
 .droppable-area.can-drop {
   @apply bg-accent/50;
+}
+
+/* Print styles */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  
+  .print\:block, .print\:block * {
+    visibility: visible;
+  }
+  
+  .print\:block {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+  }
+  
+  @page {
+    size: portrait;
+    margin: 0;
+  }
+}
+
+/* Special styles for the seating chart */
+.seating-chart-title {
+  font-family: 'Playfair Display', serif;
 }

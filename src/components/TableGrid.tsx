@@ -109,7 +109,7 @@ const TableGrid = ({
   };
 
   return (
-    <div className={`bg-white rounded-xl shadow-sm p-6 h-full flex flex-col ${isFullscreen ? 'fixed inset-0 z-50 rounded-none' : ''}`}>
+    <div className={`bg-white rounded-xl shadow-sm p-6 h-full flex flex-col ${isFullscreen ? 'fixed inset-0 z-50 rounded-none left-1/4' : ''}`}>
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-xl font-semibold">Seating Plan</h2>
         <div className="flex space-x-2">
@@ -222,7 +222,7 @@ const TableGrid = ({
         ref={gridRef} 
         className={`flex-grow relative overflow-auto border rounded-lg ${
           gridVisible ? 'bg-[url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'20\' height=\'20\' viewBox=\'0 0 20 20\'%3E%3Cg fill=\'%23f0f0f0\' fill-opacity=\'1\'%3E%3Cpath fill-rule=\'evenodd\' d=\'M0 0h20v20H0V0zm1 1v18h18V1H1z\'/%3E%3C/g%3E%3C/svg%3E")]' : ''
-        } ${isFullscreen ? '' : 'min-h-[650px]'}`}
+        } ${isFullscreen ? 'h-full' : 'min-h-[650px]'}`}
         onDragOver={handleDragOver}
       >
         {tables.map((table) => (

@@ -38,6 +38,7 @@ const Table = ({ table, onUpdateTable, onDeleteTable, onDrop, onRemoveGuest }: T
           const newX = e.clientX - parentRect.left - dragOffset.current.x;
           const newY = e.clientY - parentRect.top - dragOffset.current.y;
           
+          // Ensure table stays within the parent container bounds
           const maxX = parentRect.width - tableRef.current.offsetWidth;
           const maxY = parentRect.height - tableRef.current.offsetHeight;
           

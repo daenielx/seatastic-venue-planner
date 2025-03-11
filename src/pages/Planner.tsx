@@ -365,8 +365,8 @@ const Planner = () => {
           </div>
         )}
         
-        <div className={`grid ${isFullscreen ? 'grid-cols-4' : 'grid-cols-1 lg:grid-cols-4'} gap-6`}>
-          <div className={`${isFullscreen ? 'col-span-1 h-screen overflow-auto' : 'lg:col-span-1'}`}>
+        <div className={`grid ${isFullscreen ? 'grid-cols-4 h-screen' : 'grid-cols-1 lg:grid-cols-4'} gap-6`}>
+          <div className={`${isFullscreen ? 'col-span-1 border-r border-gray-200 bg-white/80 h-screen overflow-auto' : 'lg:col-span-1'}`}>
             <GuestList 
               guests={guests} 
               onAddGuest={handleAddGuest}
