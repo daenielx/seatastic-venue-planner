@@ -1,6 +1,6 @@
 
 import { useState } from 'react';
-import { User, UserPlus, Search, X, Edit, Trash2, Check } from 'lucide-react';
+import { User, UserPlus, Search, X, Edit, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Guest } from '@/utils/types';
@@ -35,38 +35,39 @@ const GuestList = ({ guests, onAddGuest, onUpdateGuest, onDeleteGuest }: GuestLi
     name: '',
     email: '',
     phone: '',
-    group: '',
-    plusOne: false,
-    dietaryRestrictions: '',
-    rsvpStatus: 'pending'
+    group_name: '',
+    plus_one: false,
+    dietary_restrictions: '',
+    rsvp_status: 'pending'
   });
   const [editingGuest, setEditingGuest] = useState<Guest | null>(null);
 
   const filteredGuests = guests.filter(guest => 
     guest.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (guest.group && guest.group.toLowerCase().includes(searchTerm.toLowerCase()))
+    (guest.group_name && guest.group_name.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
   const handleAddGuest = () => {
     if (newGuest.name) {
       onAddGuest({
-        id: Date.now().toString(),
+        id: Date.now().toString(), // This will be replaced by the server
         name: newGuest.name,
         email: newGuest.email || '',
         phone: newGuest.phone || '',
-        group: newGuest.group,
-        plusOne: newGuest.plusOne || false,
-        dietaryRestrictions: newGuest.dietaryRestrictions,
-        rsvpStatus: newGuest.rsvpStatus || 'pending'
+        group_name: newGuest.group_name,
+        plus_one: newGuest.plus_one || false,
+        dietary_restrictions: newGuest.dietary_restrictions,
+        rsvp_status: newGuest.rsvp_status || 'pending',
+        event_id: '' // This will be set by the server
       });
       setNewGuest({
         name: '',
         email: '',
         phone: '',
-        group: '',
-        plusOne: false,
-        dietaryRestrictions: '',
-        rsvpStatus: 'pending'
+        group_name: '',
+        plus_one: false,
+        dietary_restrictions: '',
+        rsvp_status: 'pending'
       });
     }
   };
@@ -136,8 +137,8 @@ const GuestList = ({ guests, onAddGuest, onUpdateGuest, onDeleteGuest }: GuestLi
                 </Label>
                 <Input
                   id="group"
-                  value={newGuest.group}
-                  onChange={(e) => setNewGuest({...newGuest, group: e.target.value})}
+                  value={newGuest.group_name}
+                  onChange={(e) => setNewGuest({...newGuest, group_name: e.target.value})}
                   className="col-span-3"
                 />
               </div>
@@ -147,8 +148,8 @@ const GuestList = ({ guests, onAddGuest, onUpdateGuest, onDeleteGuest }: GuestLi
                 </Label>
                 <Input
                   id="dietary"
-                  value={newGuest.dietaryRestrictions}
-                  onChange={(e) => setNewGuest({...newGuest, dietaryRestrictions: e.target.value})}
+                  value={newGuest.dietary_restrictions}
+                  onChange={(e) => setNewGuest({...newGuest, dietary_restrictions: e.target.value})}
                   className="col-span-3"
                 />
               </div>
@@ -157,8 +158,8 @@ const GuestList = ({ guests, onAddGuest, onUpdateGuest, onDeleteGuest }: GuestLi
                   RSVP Status
                 </Label>
                 <Select 
-                  value={newGuest.rsvpStatus} 
-                  onValueChange={(value) => setNewGuest({...newGuest, rsvpStatus: value as 'pending' | 'confirmed' | 'declined'})}
+                  value={newGuest.rsvp_status} 
+                  onValueChange={(value) => setNewGuest({...newGuest, rsvp_status: value as 'pending' | 'confirmed' | 'declined'})}
                 >
                   <SelectTrigger className="col-span-3">
                     <SelectValue placeholder="Select status" />
@@ -222,8 +223,8 @@ const GuestList = ({ guests, onAddGuest, onUpdateGuest, onDeleteGuest }: GuestLi
                 <div>
                   <div className="font-medium">{guest.name}</div>
                   <div className="text-xs text-muted-foreground">
-                    {guest.group && `Group: ${guest.group}`}
-                    {guest.tableId && ` • Table: ${guest.tableId}`}
+                    {guest.group_name && `Group: ${guest.group_name}`}
+                    {guest.table_id && ` • Assigned to table`}
                   </div>
                 </div>
                 <div className="flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -267,8 +268,8 @@ const GuestList = ({ guests, onAddGuest, onUpdateGuest, onDeleteGuest }: GuestLi
                             </Label>
                             <Input
                               id="edit-group"
-                              value={editingGuest.group}
-                              onChange={(e) => setEditingGuest({...editingGuest, group: e.target.value})}
+                              value={editingGuest.group_name}
+                              onChange={(e) => setEditingGuest({...editingGuest, group_name: e.target.value})}
                               className="col-span-3"
                             />
                           </div>
@@ -278,8 +279,8 @@ const GuestList = ({ guests, onAddGuest, onUpdateGuest, onDeleteGuest }: GuestLi
                             </Label>
                             <Input
                               id="edit-dietary"
-                              value={editingGuest.dietaryRestrictions}
-                              onChange={(e) => setEditingGuest({...editingGuest, dietaryRestrictions: e.target.value})}
+                              value={editingGuest.dietary_restrictions}
+                              onChange={(e) => setEditingGuest({...editingGuest, dietary_restrictions: e.target.value})}
                               className="col-span-3"
                             />
                           </div>
@@ -288,8 +289,8 @@ const GuestList = ({ guests, onAddGuest, onUpdateGuest, onDeleteGuest }: GuestLi
                               RSVP Status
                             </Label>
                             <Select 
-                              value={editingGuest.rsvpStatus} 
-                              onValueChange={(value) => setEditingGuest({...editingGuest, rsvpStatus: value as 'pending' | 'confirmed' | 'declined'})}
+                              value={editingGuest.rsvp_status} 
+                              onValueChange={(value) => setEditingGuest({...editingGuest, rsvp_status: value as 'pending' | 'confirmed' | 'declined'})}
                             >
                               <SelectTrigger className="col-span-3">
                                 <SelectValue placeholder="Select status" />

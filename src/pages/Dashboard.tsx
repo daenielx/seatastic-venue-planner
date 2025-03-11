@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Navbar from '@/components/Navbar';
 import { Button } from '@/components/ui/button';
 import { PlusCircle, Calendar, Map, Users, Settings, Edit, Trash2 } from 'lucide-react';
@@ -10,60 +10,119 @@ import { Label } from '@/components/ui/label';
 import { useNavigate } from 'react-router-dom';
 import { Event } from '@/utils/types';
 import { toast } from 'sonner';
+import { useAuth } from '@/context/AuthProvider';
+import { supabase } from '@/integrations/supabase/client';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
 const Dashboard = () => {
   const navigate = useNavigate();
-  const [events, setEvents] = useState<Event[]>([
-    {
-      id: '1',
-      name: 'Smith-Johnson Wedding',
-      date: '2023-06-15',
-      venue: 'Grand Ballroom',
-      tables: [],
-      guests: []
-    },
-    {
-      id: '2',
-      name: 'Anniversary Celebration',
-      date: '2023-08-22',
-      venue: 'Garden Terrace',
-      tables: [],
-      guests: []
-    }
-  ]);
+  const { session } = useAuth();
+  const queryClient = useQueryClient();
   const [newEvent, setNewEvent] = useState<Partial<Event>>({
     name: '',
     date: '',
     venue: '',
-    tables: [],
-    guests: []
   });
 
-  const handleCreateEvent = () => {
-    if (newEvent.name && newEvent.date) {
-      const event: Event = {
-        id: Date.now().toString(),
-        name: newEvent.name,
-        date: newEvent.date,
-        venue: newEvent.venue || '',
-        tables: [],
-        guests: []
-      };
-      setEvents([...events, event]);
+  const fetchEvents = async (): Promise<Event[]> => {
+    if (!session.user) return [];
+    
+    const { data, error } = await supabase
+      .from('events')
+      .select(`
+        id, 
+        name, 
+        date, 
+        venue, 
+        user_id,
+        created_at,
+        updated_at,
+        tables:tables(count),
+        guests:guests(count)
+      `)
+      .order('date', { ascending: true });
+    
+    if (error) {
+      toast.error('Failed to load events');
+      throw error;
+    }
+    
+    return data.map(event => ({
+      ...event,
+      // Adding these empty arrays to match our type
+      tables: [],
+      guests: []
+    }));
+  };
+
+  const { data: events = [], isLoading } = useQuery({
+    queryKey: ['events'],
+    queryFn: fetchEvents,
+    enabled: !!session.user
+  });
+
+  const createEventMutation = useMutation({
+    mutationFn: async (newEventData: Partial<Event>) => {
+      if (!session.user) throw new Error('You must be logged in');
+      
+      const { data, error } = await supabase
+        .from('events')
+        .insert([
+          { 
+            name: newEventData.name, 
+            date: newEventData.date, 
+            venue: newEventData.venue,
+            user_id: session.user.id
+          }
+        ])
+        .select();
+      
+      if (error) throw error;
+      return data[0];
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['events'] });
+      toast.success(`Event "${newEvent.name}" created`);
       setNewEvent({
         name: '',
         date: '',
         venue: '',
-        tables: [],
-        guests: []
       });
-      toast.success(`Event "${event.name}" created`);
+    },
+    onError: (error: any) => {
+      toast.error(error.message || 'Failed to create event');
+    }
+  });
+
+  const deleteEventMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from('events')
+        .delete()
+        .eq('id', id);
+      
+      if (error) throw error;
+      return id;
+    },
+    onSuccess: (id) => {
+      queryClient.invalidateQueries({ queryKey: ['events'] });
+      toast.success('Event deleted');
+    },
+    onError: (error: any) => {
+      toast.error(error.message || 'Failed to delete event');
+    }
+  });
+
+  const handleCreateEvent = () => {
+    if (newEvent.name && newEvent.date) {
+      createEventMutation.mutate(newEvent);
+    } else {
+      toast.error('Event name and date are required');
     }
   };
 
   const handleDeleteEvent = (id: string) => {
-    setEvents(events.filter(event => event.id !== id));
-    toast.success('Event deleted');
+    deleteEventMutation.mutate(id);
   };
 
   const formatDate = (dateString: string) => {
@@ -142,8 +201,12 @@ const Dashboard = () => {
                     </Button>
                   </DialogClose>
                   <DialogClose asChild>
-                    <Button type="button" onClick={handleCreateEvent}>
-                      Create Event
+                    <Button 
+                      type="button" 
+                      onClick={handleCreateEvent} 
+                      disabled={createEventMutation.isPending}
+                    >
+                      {createEventMutation.isPending ? 'Creating...' : 'Create Event'}
                     </Button>
                   </DialogClose>
                 </DialogFooter>
@@ -151,7 +214,12 @@ const Dashboard = () => {
             </Dialog>
           </div>
           
-          {events.length > 0 ? (
+          {isLoading ? (
+            <div className="text-center py-20">
+              <div className="animate-spin w-10 h-10 border-4 border-primary border-t-transparent rounded-full mx-auto mb-4"></div>
+              <p className="text-muted-foreground">Loading your events...</p>
+            </div>
+          ) : events.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {events.map((event) => (
                 <Card key={event.id} className="glassmorphism card-hover overflow-hidden">
@@ -179,6 +247,7 @@ const Dashboard = () => {
                           size="icon" 
                           className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
                           onClick={() => handleDeleteEvent(event.id)}
+                          disabled={deleteEventMutation.isPending}
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>
@@ -189,11 +258,11 @@ const Dashboard = () => {
                     <div className="grid grid-cols-2 gap-4 text-sm">
                       <div className="flex items-center">
                         <Users className="h-4 w-4 mr-2 text-muted-foreground" />
-                        <span>{event.guests.length} Guests</span>
+                        <span>0 Guests</span>
                       </div>
                       <div className="flex items-center">
                         <Settings className="h-4 w-4 mr-2 text-muted-foreground" />
-                        <span>{event.tables.length} Tables</span>
+                        <span>0 Tables</span>
                       </div>
                     </div>
                   </CardContent>
@@ -272,8 +341,12 @@ const Dashboard = () => {
                       </Button>
                     </DialogClose>
                     <DialogClose asChild>
-                      <Button type="button" onClick={handleCreateEvent}>
-                        Create Event
+                      <Button 
+                        type="button" 
+                        onClick={handleCreateEvent}
+                        disabled={createEventMutation.isPending}
+                      >
+                        {createEventMutation.isPending ? 'Creating...' : 'Create Event'}
                       </Button>
                     </DialogClose>
                   </DialogFooter>

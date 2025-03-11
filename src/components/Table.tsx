@@ -18,7 +18,10 @@ interface TableProps {
 }
 
 const Table = ({ table, onUpdateTable, onDeleteTable, onDrop, onRemoveGuest }: TableProps) => {
-  const [position, setPosition] = useState({ x: table.position.x, y: table.position.y });
+  const [position, setPosition] = useState({ 
+    x: table.position_x || table.position.x, 
+    y: table.position_y || table.position.y 
+  });
   const [isDragging, setIsDragging] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editedTable, setEditedTable] = useState<TableType>({...table});
@@ -52,7 +55,9 @@ const Table = ({ table, onUpdateTable, onDeleteTable, onDrop, onRemoveGuest }: T
         // Update the table position in the parent component
         onUpdateTable({
           ...table,
-          position: position
+          position: position,
+          position_x: position.x,
+          position_y: position.y
         });
       }
     };
@@ -67,6 +72,14 @@ const Table = ({ table, onUpdateTable, onDeleteTable, onDrop, onRemoveGuest }: T
       document.removeEventListener('mouseup', handleMouseUp);
     };
   }, [isDragging, position, table, onUpdateTable]);
+
+  // Update position state when table prop changes
+  useEffect(() => {
+    setPosition({ 
+      x: table.position_x || table.position.x, 
+      y: table.position_y || table.position.y 
+    });
+  }, [table.position_x, table.position.x, table.position_y, table.position.y]);
 
   const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
     if (tableRef.current && e.target === tableRef.current || 
@@ -99,7 +112,12 @@ const Table = ({ table, onUpdateTable, onDeleteTable, onDrop, onRemoveGuest }: T
   };
 
   const handleUpdateTable = () => {
-    onUpdateTable(editedTable);
+    onUpdateTable({
+      ...editedTable,
+      position: position,
+      position_x: position.x,
+      position_y: position.y
+    });
     setIsEditing(false);
     toast.success(`Table ${editedTable.name} updated`);
   };
@@ -195,7 +213,7 @@ const Table = ({ table, onUpdateTable, onDeleteTable, onDrop, onRemoveGuest }: T
                     <Input
                       id="edit-capacity"
                       type="number"
-                      min={editedTable.guests.length}
+                      min={editedTable.guests?.length || 0}
                       max="20"
                       value={editedTable.capacity}
                       onChange={(e) => setEditedTable({...editedTable, capacity: parseInt(e.target.value)})}
@@ -250,12 +268,12 @@ const Table = ({ table, onUpdateTable, onDeleteTable, onDrop, onRemoveGuest }: T
         <div className="flex items-center justify-center mb-2 mt-2">
           <div className="flex items-center text-xs text-muted-foreground">
             <Users className="h-3 w-3 mr-1" />
-            {table.guests.length} / {table.capacity}
+            {table.guests?.length || 0} / {table.capacity}
           </div>
         </div>
 
         <div className="p-2 flex-grow overflow-auto">
-          {table.guests.length > 0 ? (
+          {table.guests && table.guests.length > 0 ? (
             <ul className="space-y-1">
               {table.guests.map((guest) => (
                 <li 

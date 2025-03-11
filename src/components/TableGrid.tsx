@@ -1,5 +1,5 @@
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useRef } from 'react';
 import { Table as TableType, Guest } from '@/utils/types';
 import Table from './Table';
 import { Plus, LayoutGrid, Save } from 'lucide-react';
@@ -26,7 +26,6 @@ const TableGrid = ({ tables, onAddTable, onUpdateTable, onDeleteTable, onSeatGue
     capacity: 8,
     shape: 'round',
     position: { x: 0, y: 0 },
-    guests: []
   });
   const gridRef = useRef<HTMLDivElement>(null);
 
@@ -35,12 +34,10 @@ const TableGrid = ({ tables, onAddTable, onUpdateTable, onDeleteTable, onSeatGue
     try {
       const guestData = e.dataTransfer.getData('guest');
       if (guestData) {
-        const guest = JSON.stringify(guestData) === guestData 
-          ? JSON.parse(guestData) 
-          : JSON.parse(`{${guestData}}`);
+        const guest = JSON.parse(guestData);
         
         const targetTable = tables.find(t => t.id === tableId);
-        if (targetTable && targetTable.guests.length < targetTable.capacity) {
+        if (targetTable && targetTable.guests && targetTable.guests.length < targetTable.capacity) {
           onSeatGuest(tableId, guest);
           toast.success(`${guest.name} seated at ${targetTable.name}`);
         } else {
@@ -54,21 +51,33 @@ const TableGrid = ({ tables, onAddTable, onUpdateTable, onDeleteTable, onSeatGue
 
   const handleAddTable = () => {
     if (newTable.name) {
+      // Calculate a position within the visible area
+      const gridRect = gridRef.current?.getBoundingClientRect();
+      const maxX = gridRect ? gridRect.width - 200 : 500;
+      const maxY = gridRect ? gridRect.height - 200 : 300;
+      
+      const randomX = Math.floor(Math.random() * maxX);
+      const randomY = Math.floor(Math.random() * maxY);
+      
       onAddTable({
-        id: Date.now().toString(),
+        id: Date.now().toString(), // This will be replaced by the server
         name: newTable.name,
         capacity: newTable.capacity || 8,
         shape: newTable.shape || 'round',
-        position: { x: Math.random() * 500, y: Math.random() * 300 },
+        position: { x: randomX, y: randomY },
+        position_x: randomX,
+        position_y: randomY,
+        event_id: '',  // This will be set by the server
         guests: []
       });
+      
       setNewTable({
         name: '',
         capacity: 8,
         shape: 'round',
-        position: { x: 0, y: 0 },
-        guests: []
+        position: { x: 0, y: 0 }
       });
+      
       toast.success(`Table ${newTable.name} added`);
     }
   };

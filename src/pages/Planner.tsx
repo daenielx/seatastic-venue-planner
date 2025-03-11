@@ -8,229 +8,299 @@ import { Guest, Table, Event } from '@/utils/types';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Save, Download } from 'lucide-react';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/context/AuthProvider';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
 const Planner = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const [event, setEvent] = useState<Event>({
-    id: '1',
-    name: 'Sample Wedding',
-    date: '2023-10-15',
-    venue: 'Grand Ballroom',
-    tables: [],
-    guests: []
+  const { session } = useAuth();
+  const queryClient = useQueryClient();
+  const eventId = location.state?.eventId;
+  
+  // Redirect to dashboard if no eventId provided
+  useEffect(() => {
+    if (!eventId) {
+      navigate('/dashboard');
+      toast.error('No event selected. Please select an event from your dashboard.');
+    }
+  }, [eventId, navigate]);
+
+  // Fetch event details
+  const { data: event, isLoading: isEventLoading } = useQuery({
+    queryKey: ['event', eventId],
+    queryFn: async () => {
+      if (!eventId) throw new Error('No event ID provided');
+      
+      const { data, error } = await supabase
+        .from('events')
+        .select('*')
+        .eq('id', eventId)
+        .single();
+      
+      if (error) throw error;
+      return data as Event;
+    },
+    enabled: !!eventId && !!session.user
   });
 
-  // Sample data for demonstration
-  useEffect(() => {
-    const demoGuests: Guest[] = [
-      { id: '1', name: 'John Smith', group: 'Family', rsvpStatus: 'confirmed' },
-      { id: '2', name: 'Jane Doe', group: 'Friends', rsvpStatus: 'confirmed' },
-      { id: '3', name: 'Robert Johnson', group: 'Family', rsvpStatus: 'confirmed' },
-      { id: '4', name: 'Emily Davis', group: 'Friends', rsvpStatus: 'confirmed' },
-      { id: '5', name: 'Michael Brown', group: 'Family', rsvpStatus: 'pending' },
-      { id: '6', name: 'Sarah Wilson', group: 'Friends', rsvpStatus: 'pending' },
-      { id: '7', name: 'David Taylor', group: 'Colleagues', dietaryRestrictions: 'Vegetarian', rsvpStatus: 'confirmed' },
-      { id: '8', name: 'Lisa Thomas', group: 'Colleagues', rsvpStatus: 'confirmed' }
-    ];
+  // Fetch tables for this event
+  const { data: tables = [], isLoading: isTablesLoading } = useQuery({
+    queryKey: ['tables', eventId],
+    queryFn: async () => {
+      if (!eventId) return [];
+      
+      const { data, error } = await supabase
+        .from('tables')
+        .select('*')
+        .eq('event_id', eventId);
+      
+      if (error) throw error;
+      
+      return data.map(table => ({
+        ...table,
+        position: {
+          x: table.position_x,
+          y: table.position_y
+        },
+        guests: [] // Initialize empty guests array
+      }));
+    },
+    enabled: !!eventId && !!session.user
+  });
 
-    const demoTables: Table[] = [
-      { 
-        id: '1', 
-        name: 'Family Table', 
-        capacity: 8, 
-        shape: 'round', 
-        position: { x: 100, y: 100 }, 
-        guests: [] 
-      },
-      { 
-        id: '2', 
-        name: 'Friends Table', 
-        capacity: 6, 
-        shape: 'rectangle', 
-        position: { x: 400, y: 100 }, 
-        guests: [] 
-      }
-    ];
+  // Fetch guests for this event
+  const { data: guests = [], isLoading: isGuestsLoading } = useQuery({
+    queryKey: ['guests', eventId],
+    queryFn: async () => {
+      if (!eventId) return [];
+      
+      const { data, error } = await supabase
+        .from('guests')
+        .select('*')
+        .eq('event_id', eventId);
+      
+      if (error) throw error;
+      
+      return data as Guest[];
+    },
+    enabled: !!eventId && !!session.user
+  });
 
-    setEvent(prev => ({
-      ...prev,
-      guests: demoGuests,
-      tables: demoTables
-    }));
-  }, []);
+  // Process tables and guests to match our application structure
+  const processedTables = tables.map(table => {
+    const tableGuests = guests.filter(guest => guest.table_id === table.id);
+    return {
+      ...table,
+      guests: tableGuests
+    };
+  });
 
+  // Mutations
+  const addGuestMutation = useMutation({
+    mutationFn: async (newGuest: Guest) => {
+      const { data, error } = await supabase
+        .from('guests')
+        .insert([
+          {
+            name: newGuest.name,
+            email: newGuest.email,
+            phone: newGuest.phone,
+            group_name: newGuest.group_name,
+            plus_one: newGuest.plus_one,
+            dietary_restrictions: newGuest.dietary_restrictions,
+            rsvp_status: newGuest.rsvp_status,
+            event_id: eventId
+          }
+        ])
+        .select();
+      
+      if (error) throw error;
+      return data[0];
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['guests', eventId] });
+    },
+    onError: (error: any) => {
+      toast.error(error.message || 'Failed to add guest');
+    }
+  });
+
+  const updateGuestMutation = useMutation({
+    mutationFn: async (updatedGuest: Guest) => {
+      const { data, error } = await supabase
+        .from('guests')
+        .update({
+          name: updatedGuest.name,
+          email: updatedGuest.email,
+          phone: updatedGuest.phone,
+          group_name: updatedGuest.group_name,
+          plus_one: updatedGuest.plus_one,
+          dietary_restrictions: updatedGuest.dietary_restrictions,
+          rsvp_status: updatedGuest.rsvp_status,
+          table_id: updatedGuest.table_id
+        })
+        .eq('id', updatedGuest.id)
+        .select();
+      
+      if (error) throw error;
+      return data[0];
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['guests', eventId] });
+    },
+    onError: (error: any) => {
+      toast.error(error.message || 'Failed to update guest');
+    }
+  });
+
+  const deleteGuestMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from('guests')
+        .delete()
+        .eq('id', id);
+      
+      if (error) throw error;
+      return id;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['guests', eventId] });
+    },
+    onError: (error: any) => {
+      toast.error(error.message || 'Failed to delete guest');
+    }
+  });
+
+  const addTableMutation = useMutation({
+    mutationFn: async (newTable: Table) => {
+      const { data, error } = await supabase
+        .from('tables')
+        .insert([
+          {
+            name: newTable.name,
+            capacity: newTable.capacity,
+            shape: newTable.shape,
+            position_x: newTable.position.x,
+            position_y: newTable.position.y,
+            event_id: eventId
+          }
+        ])
+        .select();
+      
+      if (error) throw error;
+      return data[0];
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['tables', eventId] });
+    },
+    onError: (error: any) => {
+      toast.error(error.message || 'Failed to add table');
+    }
+  });
+
+  const updateTableMutation = useMutation({
+    mutationFn: async (updatedTable: Table) => {
+      const { data, error } = await supabase
+        .from('tables')
+        .update({
+          name: updatedTable.name,
+          capacity: updatedTable.capacity,
+          shape: updatedTable.shape,
+          position_x: updatedTable.position.x,
+          position_y: updatedTable.position.y
+        })
+        .eq('id', updatedTable.id)
+        .select();
+      
+      if (error) throw error;
+      return data[0];
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['tables', eventId] });
+    },
+    onError: (error: any) => {
+      toast.error(error.message || 'Failed to update table');
+    }
+  });
+
+  const deleteTableMutation = useMutation({
+    mutationFn: async (id: string) => {
+      // First update any guests assigned to this table to have no table
+      await supabase
+        .from('guests')
+        .update({ table_id: null })
+        .eq('table_id', id);
+      
+      const { error } = await supabase
+        .from('tables')
+        .delete()
+        .eq('id', id);
+      
+      if (error) throw error;
+      return id;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['tables', eventId] });
+      queryClient.invalidateQueries({ queryKey: ['guests', eventId] });
+    },
+    onError: (error: any) => {
+      toast.error(error.message || 'Failed to delete table');
+    }
+  });
+
+  // Event handlers
   const handleAddGuest = (newGuest: Guest) => {
-    setEvent(prev => ({
-      ...prev,
-      guests: [...prev.guests, newGuest]
-    }));
-    toast.success(`${newGuest.name} added to guest list`);
+    addGuestMutation.mutate({ ...newGuest, event_id: eventId });
   };
 
   const handleUpdateGuest = (updatedGuest: Guest) => {
-    setEvent(prev => ({
-      ...prev,
-      guests: prev.guests.map(guest => 
-        guest.id === updatedGuest.id ? updatedGuest : guest
-      )
-    }));
-    toast.success(`${updatedGuest.name} updated`);
+    updateGuestMutation.mutate(updatedGuest);
   };
 
   const handleDeleteGuest = (id: string) => {
-    const guestToDelete = event.guests.find(guest => guest.id === id);
-    
-    // Remove guest from table if assigned
-    const updatedTables = event.tables.map(table => {
-      if (table.guests.some(g => g.id === id)) {
-        return {
-          ...table,
-          guests: table.guests.filter(g => g.id !== id)
-        };
-      }
-      return table;
-    });
-    
-    setEvent(prev => ({
-      ...prev,
-      guests: prev.guests.filter(guest => guest.id !== id),
-      tables: updatedTables
-    }));
-    
-    if (guestToDelete) {
-      toast.success(`${guestToDelete.name} removed from guest list`);
-    }
+    deleteGuestMutation.mutate(id);
   };
 
   const handleAddTable = (newTable: Table) => {
-    setEvent(prev => ({
-      ...prev,
-      tables: [...prev.tables, newTable]
-    }));
+    addTableMutation.mutate({ ...newTable, event_id: eventId });
   };
 
   const handleUpdateTable = (updatedTable: Table) => {
-    setEvent(prev => ({
-      ...prev,
-      tables: prev.tables.map(table => 
-        table.id === updatedTable.id ? updatedTable : table
-      )
-    }));
+    // Convert position object to x/y properties for database
+    updateTableMutation.mutate({
+      ...updatedTable,
+      position_x: updatedTable.position.x,
+      position_y: updatedTable.position.y,
+      event_id: eventId
+    });
   };
 
   const handleDeleteTable = (id: string) => {
-    // Check if table has guests
-    const tableToDelete = event.tables.find(table => table.id === id);
-    
-    if (tableToDelete && tableToDelete.guests.length > 0) {
-      // Move guests back to unassigned (remove tableId)
-      const updatedGuests = event.guests.map(guest => {
-        if (tableToDelete.guests.some(g => g.id === guest.id)) {
-          return { ...guest, tableId: undefined };
-        }
-        return guest;
-      });
-      
-      setEvent(prev => ({
-        ...prev,
-        tables: prev.tables.filter(table => table.id !== id),
-        guests: updatedGuests
-      }));
-    } else {
-      setEvent(prev => ({
-        ...prev,
-        tables: prev.tables.filter(table => table.id !== id)
-      }));
-    }
+    deleteTableMutation.mutate(id);
   };
 
   const handleSeatGuest = (tableId: string, guest: Guest) => {
-    // First check if guest is already seated at another table
-    const isGuestSeated = event.tables.some(table => 
-      table.id !== tableId && table.guests.some(g => g.id === guest.id)
-    );
-    
-    if (isGuestSeated) {
-      // Remove guest from previous table
-      const updatedTables = event.tables.map(table => {
-        if (table.id !== tableId && table.guests.some(g => g.id === guest.id)) {
-          return {
-            ...table,
-            guests: table.guests.filter(g => g.id !== guest.id)
-          };
-        }
-        return table;
-      });
-      
-      setEvent(prev => ({
-        ...prev,
-        tables: updatedTables
-      }));
-    }
-    
-    // Now add guest to the new table
-    const targetTable = event.tables.find(table => table.id === tableId);
-    
-    if (targetTable && targetTable.guests.length < targetTable.capacity) {
-      // Update the guest with tableId
-      const updatedGuest = { 
-        ...guest, 
-        tableId 
-      };
-      
-      // Update guest in the guests array
-      const updatedGuests = event.guests.map(g => 
-        g.id === guest.id ? updatedGuest : g
-      );
-      
-      // Add guest to table
-      const updatedTables = event.tables.map(table => {
-        if (table.id === tableId) {
-          return {
-            ...table,
-            guests: [...table.guests, updatedGuest]
-          };
-        }
-        return table;
-      });
-      
-      setEvent(prev => ({
-        ...prev,
-        guests: updatedGuests,
-        tables: updatedTables
-      }));
-    }
+    // Update the guest with the new table assignment
+    updateGuestMutation.mutate({
+      ...guest,
+      table_id: tableId,
+      event_id: eventId
+    });
   };
 
   const handleRemoveGuest = (tableId: string, guestId: string) => {
-    // Remove guest from table
-    const updatedTables = event.tables.map(table => {
-      if (table.id === tableId) {
-        return {
-          ...table,
-          guests: table.guests.filter(g => g.id !== guestId)
-        };
-      }
-      return table;
-    });
-    
-    // Update guest's tableId to undefined
-    const updatedGuests = event.guests.map(guest => {
-      if (guest.id === guestId) {
-        return { ...guest, tableId: undefined };
-      }
-      return guest;
-    });
-    
-    setEvent(prev => ({
-      ...prev,
-      tables: updatedTables,
-      guests: updatedGuests
-    }));
-    
-    const guestName = event.guests.find(g => g.id === guestId)?.name || 'Guest';
-    toast.success(`${guestName} removed from table`);
+    // Find the guest
+    const guest = guests.find(g => g.id === guestId);
+    if (guest) {
+      // Update the guest to remove table assignment
+      updateGuestMutation.mutate({
+        ...guest,
+        table_id: null,
+        event_id: eventId
+      });
+    }
   };
 
   const handleSave = () => {
@@ -240,6 +310,19 @@ const Planner = () => {
   const handleExport = () => {
     toast.success('Seating plan exported successfully');
   };
+
+  // Loading state
+  if (isEventLoading || !event) {
+    return (
+      <div className="min-h-screen bg-secondary/30 flex items-center justify-center">
+        <Navbar />
+        <div className="text-center">
+          <div className="animate-spin w-10 h-10 border-4 border-primary border-t-transparent rounded-full mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading event details...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-secondary/30 page-transition">
@@ -290,7 +373,7 @@ const Planner = () => {
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           <div className="lg:col-span-1">
             <GuestList 
-              guests={event.guests} 
+              guests={guests} 
               onAddGuest={handleAddGuest}
               onUpdateGuest={handleUpdateGuest}
               onDeleteGuest={handleDeleteGuest}
@@ -298,7 +381,7 @@ const Planner = () => {
           </div>
           <div className="lg:col-span-3">
             <TableGrid 
-              tables={event.tables}
+              tables={processedTables}
               onAddTable={handleAddTable}
               onUpdateTable={handleUpdateTable}
               onDeleteTable={handleDeleteTable}
