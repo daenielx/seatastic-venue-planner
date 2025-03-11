@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
@@ -365,8 +366,9 @@ const Planner = () => {
           </div>
         )}
         
-        <div className={`grid ${isFullscreen ? 'grid-cols-4 h-screen' : 'grid-cols-1 lg:grid-cols-4'} gap-6`}>
-          <div className={`${isFullscreen ? 'col-span-1 border-r border-gray-200 bg-white/80 h-screen overflow-auto' : 'lg:col-span-1'}`}>
+        <div className={`grid ${isFullscreen ? 'grid-cols-1 h-screen' : 'grid-cols-1 lg:grid-cols-4'} gap-6`}>
+          {/* Guest list - always visible even in fullscreen mode */}
+          <div className={`${isFullscreen ? 'fixed left-0 top-0 w-[300px] h-screen z-50 border-r shadow-md bg-white/90 overflow-auto' : 'lg:col-span-1'}`}>
             <GuestList 
               guests={guests} 
               onAddGuest={handleAddGuest}
@@ -374,7 +376,7 @@ const Planner = () => {
               onDeleteGuest={handleDeleteGuest}
             />
           </div>
-          <div className={`${isFullscreen ? 'col-span-3' : 'lg:col-span-3'}`}>
+          <div className={`${isFullscreen ? 'col-span-1' : 'lg:col-span-3'}`}>
             <TableGrid 
               tables={processedTables}
               onAddTable={handleAddTable}

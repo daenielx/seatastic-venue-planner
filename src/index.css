@@ -143,6 +143,7 @@
     top: 0;
     width: 100%;
     height: 100%;
+    background-color: white;
   }
   
   @page {
@@ -154,4 +155,17 @@
 /* Special styles for the seating chart */
 .seating-chart-title {
   font-family: 'Playfair Display', serif;
+}
+
+/* Fix any issues with fullscreen layout */
+.fullscreen-layout {
+  overflow: hidden;
+  height: 100vh;
+  width: 100vw;
+}
+
+/* Elegant print design */
+.print-seating-chart {
+  background-color: #fcfaf7;
+  color: #1a1a1a;
 }
