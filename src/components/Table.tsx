@@ -1,3 +1,4 @@
+
 import { useState, useRef, useEffect } from 'react';
 import { Table as TableType, Guest } from '@/utils/types';
 import { Users, X, Edit, Trash2 } from 'lucide-react';
@@ -284,6 +285,17 @@ const Table = ({ table, onUpdateTable, onDeleteTable, onDrop, onRemoveGuest }: T
             </div>
           )}
         </div>
+      </div>
+      
+      {/* Display guest initials in circular arrangement */}
+      {table.guests && table.guests.length > 0 && (
+        <CircularGuests 
+          guests={table.guests} 
+          tableSize={tableSize}
+        />
+      )}
+    </>
+  );
+};
 
-        {
-
+export default Table;
