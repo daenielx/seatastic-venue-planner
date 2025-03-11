@@ -4,7 +4,7 @@ import {
   Users, 
   TableProperties, 
   MousePointerClick, 
-  DeviceMobile,
+  Smartphone,
   Share2,
   Download
 } from 'lucide-react';
@@ -26,7 +26,7 @@ const features = [
     description: 'Create various table shapes and sizes to match your venue perfectly.'
   },
   {
-    icon: <DeviceMobile className="h-10 w-10 text-green-500" />,
+    icon: <Smartphone className="h-10 w-10 text-green-500" />,
     title: 'Mobile Friendly',
     description: 'Plan on the go with our fully responsive design that works on all devices.'
   },
