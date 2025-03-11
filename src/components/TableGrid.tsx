@@ -1,7 +1,8 @@
+
 import { useState, useRef } from 'react';
 import { Table as TableType, Guest } from '@/utils/types';
 import Table from './Table';
-import { Plus, LayoutGrid, Save } from 'lucide-react';
+import { Plus, LayoutGrid, Save, Maximize, Minimize } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
@@ -16,9 +17,20 @@ interface TableGridProps {
   onDeleteTable: (id: string) => void;
   onSeatGuest: (tableId: string, guest: Guest) => void;
   onRemoveGuest: (tableId: string, guestId: string) => void;
+  isFullscreen?: boolean;
+  onToggleFullscreen?: () => void;
 }
 
-const TableGrid = ({ tables, onAddTable, onUpdateTable, onDeleteTable, onSeatGuest, onRemoveGuest }: TableGridProps) => {
+const TableGrid = ({ 
+  tables, 
+  onAddTable, 
+  onUpdateTable, 
+  onDeleteTable, 
+  onSeatGuest, 
+  onRemoveGuest,
+  isFullscreen = false,
+  onToggleFullscreen 
+}: TableGridProps) => {
   const [gridVisible, setGridVisible] = useState(false);
   const [newTable, setNewTable] = useState<Partial<TableType>>({
     name: '',
@@ -82,16 +94,8 @@ const TableGrid = ({ tables, onAddTable, onUpdateTable, onDeleteTable, onSeatGue
     }
   };
 
-  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-  };
-
-  const handleSaveLayout = () => {
-    toast.success('Layout saved successfully');
-  };
-
   return (
-    <div className="bg-white rounded-xl shadow-sm p-6 h-full flex flex-col">
+    <div className={`bg-white rounded-xl shadow-sm p-6 h-full flex flex-col ${isFullscreen ? 'fixed inset-0 z-50 rounded-none' : ''}`}>
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-xl font-semibold">Seating Plan</h2>
         <div className="flex space-x-2">
@@ -112,6 +116,20 @@ const TableGrid = ({ tables, onAddTable, onUpdateTable, onDeleteTable, onSeatGue
             <Save className="h-4 w-4 mr-2" />
             Save Layout
           </Button>
+          {onToggleFullscreen && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={onToggleFullscreen}
+              className="btn-hover"
+            >
+              {isFullscreen ? (
+                <><Minimize className="h-4 w-4 mr-2" />Exit Fullscreen</>
+              ) : (
+                <><Maximize className="h-4 w-4 mr-2" />Fullscreen</>
+              )}
+            </Button>
+          )}
           <Dialog>
             <DialogTrigger asChild>
               <Button size="sm" className="btn-hover">
@@ -190,7 +208,7 @@ const TableGrid = ({ tables, onAddTable, onUpdateTable, onDeleteTable, onSeatGue
         ref={gridRef} 
         className={`flex-grow relative overflow-auto border rounded-lg ${
           gridVisible ? 'bg-[url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'20\' height=\'20\' viewBox=\'0 0 20 20\'%3E%3Cg fill=\'%23f0f0f0\' fill-opacity=\'1\'%3E%3Cpath fill-rule=\'evenodd\' d=\'M0 0h20v20H0V0zm1 1v18h18V1H1z\'/%3E%3C/g%3E%3C/svg%3E")]' : ''
-        }`}
+        } ${isFullscreen ? '' : 'min-h-[650px]'}`}
         onDragOver={handleDragOver}
       >
         {tables.map((table) => (

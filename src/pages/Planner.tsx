@@ -17,6 +17,7 @@ const Planner = () => {
   const { session } = useAuth();
   const queryClient = useQueryClient();
   const eventId = location.state?.eventId;
+  const [isFullscreen, setIsFullscreen] = useState(false);
   
   useEffect(() => {
     if (!eventId) {
@@ -293,6 +294,10 @@ const Planner = () => {
     toast.success('Seating plan exported successfully');
   };
 
+  const toggleFullscreen = () => {
+    setIsFullscreen(!isFullscreen);
+  };
+
   if (isEventLoading || !event) {
     return (
       <div className="min-h-screen bg-secondary/30 flex items-center justify-center">
@@ -307,60 +312,64 @@ const Planner = () => {
 
   return (
     <div className="min-h-screen bg-secondary/30 page-transition">
-      <Navbar />
+      {!isFullscreen && <Navbar />}
       
-      <div className="container mx-auto px-6 py-24">
-        <div className="mb-8 flex justify-between items-center">
-          <div className="flex items-center">
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              className="mr-2"
-              onClick={() => navigate('/dashboard')}
-            >
-              <ArrowLeft className="h-5 w-5" />
-            </Button>
-            <div>
-              <h1 className="text-3xl font-bold">{event.name}</h1>
-              <p className="text-muted-foreground">
-                {new Date(event.date).toLocaleDateString('en-US', {
-                  year: 'numeric',
-                  month: 'long',
-                  day: 'numeric'
-                })}
-                {event.venue && ` • ${event.venue}`}
-              </p>
+      <div className={`container mx-auto ${isFullscreen ? 'px-0 py-0' : 'px-6 py-24'}`}>
+        {!isFullscreen && (
+          <div className="mb-8 flex justify-between items-center">
+            <div className="flex items-center">
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="mr-2"
+                onClick={() => navigate('/dashboard')}
+              >
+                <ArrowLeft className="h-5 w-5" />
+              </Button>
+              <div>
+                <h1 className="text-3xl font-bold">{event.name}</h1>
+                <p className="text-muted-foreground">
+                  {new Date(event.date).toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                  })}
+                  {event.venue && ` • ${event.venue}`}
+                </p>
+              </div>
+            </div>
+            <div className="flex space-x-3">
+              <Button 
+                variant="outline" 
+                className="btn-hover"
+                onClick={handleExport}
+              >
+                <Download className="h-4 w-4 mr-2" />
+                Export
+              </Button>
+              <Button 
+                className="btn-hover"
+                onClick={handleSave}
+              >
+                <Save className="h-4 w-4 mr-2" />
+                Save Plan
+              </Button>
             </div>
           </div>
-          <div className="flex space-x-3">
-            <Button 
-              variant="outline" 
-              className="btn-hover"
-              onClick={handleExport}
-            >
-              <Download className="h-4 w-4 mr-2" />
-              Export
-            </Button>
-            <Button 
-              className="btn-hover"
-              onClick={handleSave}
-            >
-              <Save className="h-4 w-4 mr-2" />
-              Save Plan
-            </Button>
-          </div>
-        </div>
+        )}
         
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-          <div className="lg:col-span-1">
-            <GuestList 
-              guests={guests} 
-              onAddGuest={handleAddGuest}
-              onUpdateGuest={handleUpdateGuest}
-              onDeleteGuest={handleDeleteGuest}
-            />
-          </div>
-          <div className="lg:col-span-3">
+        <div className={`grid ${isFullscreen ? 'grid-cols-1' : 'grid-cols-1 lg:grid-cols-4'} gap-6`}>
+          {(!isFullscreen) && (
+            <div className="lg:col-span-1">
+              <GuestList 
+                guests={guests} 
+                onAddGuest={handleAddGuest}
+                onUpdateGuest={handleUpdateGuest}
+                onDeleteGuest={handleDeleteGuest}
+              />
+            </div>
+          )}
+          <div className={`${isFullscreen ? '' : 'lg:col-span-3'}`}>
             <TableGrid 
               tables={processedTables}
               onAddTable={handleAddTable}
@@ -368,6 +377,8 @@ const Planner = () => {
               onDeleteTable={handleDeleteTable}
               onSeatGuest={handleSeatGuest}
               onRemoveGuest={handleRemoveGuest}
+              isFullscreen={isFullscreen}
+              onToggleFullscreen={toggleFullscreen}
             />
           </div>
         </div>
